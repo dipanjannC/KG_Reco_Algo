@@ -1,8 +1,16 @@
 from model import similarityEngine
+from py2neo import Graph 
+from pandas import DataFrame
+
 
 def get_demos():
-
-    pass
+    session = Graph("bolt://localhost:7687", auth=("neo4j", "password"))
+    query = ''' 
+    match (demo:Demo) -[:has_usecase]->(usecase:Usecase) return demo,usecase
+    '''
+    result = session.run(query).data() 
+    return result
+    
 
 
 def get_top_recomendations(top_k,user_input_response,graph_response,se):
@@ -45,3 +53,8 @@ def get_top_recomendations(top_k,user_input_response,graph_response,se):
 def main():
     
     se = similarityEngine.SimilarityEngine()
+    graph_response = get_demos()
+    #user_input_response = 
+    
+    #(top_k,user_input_response,graph_response,similarityEngine Object)
+    # reco_result = get_top_recomendations(3,user_input_response,graph_response,se)
