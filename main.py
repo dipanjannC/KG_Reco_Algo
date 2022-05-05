@@ -29,10 +29,10 @@ def get_top_recomendations(top_k,user_input_response,graph_response,se):
     null_replacer = null_mapper.get
 
     ## User Inputs
-    usecase = user_input_response.get("usecase")
-    industry = user_input_response.get("industry")
-    vertical = user_input_response.get("vertical")
-    client_name = user_input_response.get("client_name")
+    usecase = user_input_response.usecase
+    industry = user_input_response.industry
+    vertical = user_input_response.vertical
+    client_name = user_input_response.client_name
     # client_details = extract_profile(client_name)
 
    
@@ -82,7 +82,7 @@ def get_usecases():
 
 @app.post('/get_recos')
 def get_recommendations(user_input_response : user_input):
-    print(user_input_response)
+    print(user_input_response.usecase)
     se = similarityEngine.SimilarityEngine()
     top_k = 3
     conn = connection()
