@@ -1,10 +1,27 @@
+from lib2to3.pytree import Base
+from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import Optional
 from model import similarityEngine
-# from py2neo import Graph 
-from pandas import DataFrame
+from neo4j import GraphDatabase, Session
+import config
+
+# print(config.uri,config.password,config.user)
+class user_input(BaseModel):
+    client_name: str
+    client_persona: str
+    industry: str
+    storefront_asset: str
+    vertical: str
+    usecase: str
 
 
-    
 
+
+def connection():
+    driver = GraphDatabase.driver(uri=config.uri,auth=(config.user,config.password))
+    # print(driver)
+    return driver
 
 def get_top_recomendations(top_k,user_input_response,graph_response,se):
     # if you have any common values you wanna replace the value for in the list. Use the Null Replacer
@@ -40,14 +57,52 @@ def get_top_recomendations(top_k,user_input_response,graph_response,se):
 
     print('\n\n Final Recomendatations : \n')
     return result
+
+
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {(config.uri,config.password,config.user)}
+
+
+@app.get('/get_all_usecases')
+def get_usecases():
+    conn = connection()
+    session =  conn.session()
+
+    #Query 
+    query = ''' 
+    match (demo:Demo) -[:has_usecase]->(usecase:Usecase) return demo,usecase
+    ''' 
+    q_result = session.run(query).data()
+    usecases = [q_result[each].get('usecase').get('usecase') for each in range(0,len(q_result))]
+    return usecases
+
+
+@app.post('/get_recos')
+def get_recommendations(user_input_response : user_input):
+    print(user_input_response)
+    se = similarityEngine.SimilarityEngine()
+    top_k = 3
+    conn = connection()
+    session =  conn.session()
+
+    #Query 
+    query = ''' 
+    match (demo:Demo) -[:has_usecase]->(usecase:Usecase) return demo,usecase
+    ''' 
+    graph_response = session.run(query).data()
     
+    top_recos = get_top_recomendations(top_k,user_input_response,graph_response,se)
+    return top_recos
+
+
+
+
     
 
-def main():
+
+
     
-    se = similarityEngine.SimilarityEngine()
-    # graph_response = get_demos()
-    #user_input_response = 
     
-    #(top_k,user_input_response,graph_response,similarityEngine Object)
-    # reco_result = get_top_recomendations(3,user_input_response,graph_response,se)
